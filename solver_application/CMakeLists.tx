@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(solver_application LANGUAGES CXX)
+project(solver LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -10,12 +10,11 @@ if(POLICY CMP0079)
     cmake_policy(SET CMP0079 NEW)
 endif()
 
-# Проверяем, не добавлены ли уже зависимости
+# Подключаем библиотеки с уникальными бинарными директориями
 if(NOT TARGET formatter_ex)
-    # Используем уникальные имена бинарных директорий
     add_subdirectory(
         ${CMAKE_SOURCE_DIR}/formatter_ex_lib
-        ${CMAKE_BINARY_DIR}/formatter_ex_lib_build
+        ${CMAKE_BINARY_DIR}/formatter_ex_build
     )
 endif()
 
@@ -29,14 +28,14 @@ endif()
 # Создаем исполняемый файл
 add_executable(solver equation.cpp)
 
-# Линкуем с проверкой существования целей
+# Линкуем библиотеки с проверкой их существования
 if(TARGET formatter_ex AND TARGET solver_lib)
     target_link_libraries(solver PRIVATE
         formatter_ex
         solver_lib
     )
     
-    # Указываем пути к заголовкам
+    # Указываем пути к заголовкам (полные пути относительно CMAKE_SOURCE_DIR)
     target_include_directories(solver PRIVATE
         ${CMAKE_SOURCE_DIR}/formatter_lib
         ${CMAKE_SOURCE_DIR}/formatter_ex_lib
@@ -45,3 +44,8 @@ if(TARGET formatter_ex AND TARGET solver_lib)
 else()
     message(WARNING "Не удалось найти все необходимые библиотеки для линковки")
 endif()
+
+# Опционально: установка исполняемого файла
+install(TARGETS solver
+    RUNTIME DESTINATION bin
+)
