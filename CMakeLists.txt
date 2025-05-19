@@ -10,38 +10,46 @@ if(POLICY CMP0079)
     cmake_policy(SET CMP0079 NEW)
 endif()
 
-# Проверяем и добавляем библиотеки с абсолютными путями
-set(FORMATTER_EX_LIB_PATH "${CMAKE_SOURCE_DIR}/formatter_ex_lib")
-set(SOLVER_LIB_PATH "${CMAKE_SOURCE_DIR}/solver_lib")
+# Проверка существования всех необходимых директорий
+set(REQUIRED_DIRS
+    "${CMAKE_SOURCE_DIR}/formatter_lib"
+    "${CMAKE_SOURCE_DIR}/formatter_ex_lib"
+    "${CMAKE_SOURCE_DIR}/solver_lib"
+    "${CMAKE_SOURCE_DIR}/hello_world_application"
+    "${CMAKE_SOURCE_DIR}/solver_application"
+)
 
-if(NOT EXISTS ${FORMATTER_EX_LIB_PATH})
-    message(FATAL_ERROR "formatter_ex_lib not found at: ${FORMATTER_EX_LIB_PATH}")
-endif()
+foreach(dir ${REQUIRED_DIRS})
+    if(NOT EXISTS ${dir})
+        message(FATAL_ERROR "Required directory not found: ${dir}")
+    endif()
+endforeach()
 
-if(NOT EXISTS ${SOLVER_LIB_PATH})
-    message(FATAL_ERROR "solver_lib not found at: ${SOLVER_LIB_PATH}")
-endif()
+# Добавляем все поддиректории с уникальными бинарными директориями
+add_subdirectory(${CMAKE_SOURCE_DIR}/formatter_lib formatter_lib_build)
+add_subdirectory(${CMAKE_SOURCE_DIR}/formatter_ex_lib formatter_ex_lib_build)
+add_subdirectory(${CMAKE_SOURCE_DIR}/solver_lib solver_lib_build)
+add_subdirectory(${CMAKE_SOURCE_DIR}/hello_world_application hello_world_build)
+add_subdirectory(${CMAKE_SOURCE_DIR}/solver_application solver_app_build)
 
-# Добавляем поддиректории
-add_subdirectory(${FORMATTER_EX_LIB_PATH} formatter_ex_build)
-add_subdirectory(${SOLVER_LIB_PATH} solver_lib_build)
+# Установка только если цели существуют
+set(INSTALL_TARGETS hello_world solver)
+foreach(target ${INSTALL_TARGETS})
+    if(NOT TARGET ${target})
+        list(REMOVE_ITEM INSTALL_TARGETS ${target})
+        message(WARNING "Target ${target} not found - skipping installation")
+    endif()
+endforeach()
 
-# Добавляем приложения
-add_subdirectory(hello_world_application hello_world_build)
-add_subdirectory(solver_application solver_app_build)
-
-# Установка (только если цели существуют)
-if(TARGET hello_world AND TARGET solver)
-    install(TARGETS hello_world solver
+if(INSTALL_TARGETS)
+    install(TARGETS ${INSTALL_TARGETS}
         RUNTIME DESTINATION bin
     )
-else()
-    message(WARNING "Installation targets not found")
 endif()
 
 include(InstallRequiredSystemLibraries)
 
-# Настройка CPack
+# Настройки CPack
 set(CPACK_PACKAGE_NAME "lab06")
 set(CPACK_PACKAGE_VERSION "1.0.0")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Lab 06 solution")
