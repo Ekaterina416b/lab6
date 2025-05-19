@@ -10,41 +10,51 @@ if(POLICY CMP0079)
     cmake_policy(SET CMP0079 NEW)
 endif()
 
-# Проверка существования всех необходимых директорий
-set(REQUIRED_DIRS
-    "${CMAKE_SOURCE_DIR}/formatter_lib"
-    "${CMAKE_SOURCE_DIR}/formatter_ex_lib"
-    "${CMAKE_SOURCE_DIR}/solver_lib"
-    "${CMAKE_SOURCE_DIR}/hello_world_application"
-    "${CMAKE_SOURCE_DIR}/solver_application"
+# Определяем ожидаемую структуру проекта
+set(ROOT_DIR ${CMAKE_SOURCE_DIR})
+set(FORMATTER_EX_LIB_DIR ${ROOT_DIR}/formatter_ex_lib)
+set(SOLVER_LIB_DIR ${ROOT_DIR}/solver_lib)
+
+# Проверяем существование критически важных директорий
+foreach(dir 
+    ${FORMATTER_EX_LIB_DIR}
+    ${SOLVER_LIB_DIR}
+    ${ROOT_DIR}/solver_application
 )
-
-foreach(dir ${REQUIRED_DIRS})
     if(NOT EXISTS ${dir})
-        message(FATAL_ERROR "Required directory not found: ${dir}")
+        message(FATAL_ERROR "Directory not found: ${dir}")
     endif()
 endforeach()
 
-# Добавляем все поддиректории с уникальными бинарными директориями
-add_subdirectory(${CMAKE_SOURCE_DIR}/formatter_lib formatter_lib_build)
-add_subdirectory(${CMAKE_SOURCE_DIR}/formatter_ex_lib formatter_ex_lib_build)
-add_subdirectory(${CMAKE_SOURCE_DIR}/solver_lib solver_lib_build)
-add_subdirectory(${CMAKE_SOURCE_DIR}/hello_world_application hello_world_build)
-add_subdirectory(${CMAKE_SOURCE_DIR}/solver_application solver_app_build)
+# Добавляем поддиректории с явными путями
+add_subdirectory(${FORMATTER_EX_LIB_DIR} formatter_ex_build)
+add_subdirectory(${SOLVER_LIB_DIR} solver_lib_build)
+add_subdirectory(${ROOT_DIR}/solver_application solver_app_build)
 
-# Установка только если цели существуют
-set(INSTALL_TARGETS hello_world solver)
-foreach(target ${INSTALL_TARGETS})
-    if(NOT TARGET ${target})
-        list(REMOVE_ITEM INSTALL_TARGETS ${target})
-        message(WARNING "Target ${target} not found - skipping installation")
-    endif()
-endforeach()
+# Добавляем остальные компоненты (если есть)
+if(EXISTS ${ROOT_DIR}/formatter_lib})
+    add_subdirectory(${ROOT_DIR}/formatter_lib formatter_lib_build)
+endif()
+
+if(EXISTS ${ROOT_DIR}/hello_world_application})
+    add_subdirectory(${ROOT_DIR}/hello_world_application hello_world_build)
+endif()
+
+# Установка только существующих целей
+set(INSTALL_TARGETS "")
+if(TARGET solver)
+    list(APPEND INSTALL_TARGETS solver)
+endif()
+if(TARGET hello_world)
+    list(APPEND INSTALL_TARGETS hello_world)
+endif()
 
 if(INSTALL_TARGETS)
     install(TARGETS ${INSTALL_TARGETS}
         RUNTIME DESTINATION bin
     )
+else()
+    message(WARNING "No valid targets found for installation")
 endif()
 
 include(InstallRequiredSystemLibraries)
