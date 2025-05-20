@@ -1,9 +1,11 @@
-lab06 % mkdir _build && cd _build
- % cmake ..
->> The C compiler identification is AppleClang 17.0.0.17000013 
- The CXX compiler identification is AppleClang 17.0.0.17000013 
- Detecting C compiler ABI info 
- Detecting C compiler ABI info - done 
+#Lab06
+```
+lab06 % mkdir _build && cd _build 
+% cmake .. 
+The C compiler identification is AppleClang 17.0.0.17000013 
+The CXX compiler identification is AppleClang 17.0.0.17000013 
+Detecting C compiler ABI info 
+Detecting C compiler ABI info - done 
 Check for working C compiler: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc - skipped 
 Detecting C compile features 
 Detecting C compile features - done 
@@ -62,4 +64,5 @@ Writing objects: 100% (1/1), 173 bytes | 173.00 KiB/s, done.
 Total 1 (delta 0), reused 0 (delta 0), pack-reused 0 
 To https://github.com/Ekaterina416b/lab6 
  * [new tag]         v1.0.2 -> v1.0.2 
-
+```
+<img width="904" alt="Снимок экрана 2025-05-20 в 17 09 03" src="https://github.com/user-attachments/assets/2513713d-5558-42af-91d4-e46f5fa14758" />
