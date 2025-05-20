@@ -1,40 +1,52 @@
-name: CPack Release
+name: CPack
 
 on:
   push:
-    tags:
-      - 'v*.*.*'  # Запускать при создании тегов, соответствующих шаблону v*.
+    branches: [master]
+    tags: ["v*.*.*"]
 
 jobs:
   release:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Обязательно для CPack
-
-      - name: Install Dependencies
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake
+          sudo apt-get install -y cmake build-essential
 
-      - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/_build -D PRINT_VERSION=1.0.0 ${{github.workspace}}
+      - name: Configure
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          cmake -B build -DCPACK_PACKAGE_VERSION=$VERSION
 
-      - name: Build
-        run: cmake --build ${{github.workspace}}/_build --config Release
+      - name: Build and package
+        run: |
+          cd build
+          cmake --build . --target package
+          cpack -G "DEB;TGZ"  # Явно указываем форматы
 
-      - name: Package with CPack
-        run: cpack -C Release --config Release -B ${{github.workspace}}/_build
-
-      - name: Upload Release Assets
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ github.event.release.upload_url }}  # from release event
-          asset_path: ${{ github.workspace }}/_build/*.deb
-          asset_name: solver_${github.ref_name}.deb
-          asset_content_type: application/vnd.debian.binary-package
+          name: packages
+          path: |
+            build/*.deb
+            build/*.tar.gz
+
+  create_release:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: dist/
+
+      - uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref }}
+          files: |
+            dist/*.deb
+            dist/*.tar.gz
