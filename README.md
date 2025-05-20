@@ -1,6 +1,6 @@
-mmakbuk@MacBook-Air-makbuk lab06 % mkdir _build && cd _build
-makbuk@MacBook-Air-makbuk _build % cmake ..
--- The C compiler identification is AppleClang 17.0.0.17000013
+lab06 % mkdir _build && cd _build
+ % cmake ..
+>>-- The C compiler identification is AppleClang 17.0.0.17000013
 -- The CXX compiler identification is AppleClang 17.0.0.17000013
 -- Detecting C compiler ABI info
 -- Detecting C compiler ABI info - done
@@ -44,26 +44,22 @@ CPack: - Run preinstall target for: lab06
 CPack: - Install project: lab06 []
 CPack: Create package
 CPack: - package: /Users/makbuk/lab06/_build/lab06-0.1.1-Darwin.tar.gz generated.
-makbuk@MacBook-Air-makbuk _build % 
-
-makbuk@MacBook-Air-makbuk _build % mkdir -p ../Arts
-makbuk@MacBook-Air-makbuk _build % cd ../
-makbuk@MacBook-Air-makbuk lab06 % cp lab06-*.tar.gz Arts/   
+% mkdir -p ../Arts
+% cd ../
+lab06 % cp lab06-*.tar.gz Arts/   
 zsh: no matches found: lab06-*.tar.gz
 makbuk@MacBook-Air-makbuk lab06 % ls -l _build/*.tar.gz
 -rw-r--r--  1 makbuk  staff  15930 19 май 22:27 _build/lab06-0.1.1-Darwin.tar.gz
-makbuk@MacBook-Air-makbuk lab06 % cd Arts
-makbuk@MacBook-Air-makbuk Arts % ды
-zsh: command not found: ды
-makbuk@MacBook-Air-makbuk Arts % ls
-makbuk@MacBook-Air-makbuk Arts % tar -xvzf lab06-0.1.1-Darwin.tar.gz --strip-components=1
-tar: Error opening archive: Failed to open 'lab06-0.1.1-Darwin.tar.gz'
-makbuk@MacBook-Air-makbuk Arts % cd ~/lab06  
-makbuk@MacBook-Air-makbuk lab06 % cp _build/lab06-0.1.1-Darwin.tar.gz Arts/
-makbuk@MacBook-Air-makbuk lab06 % cd Arts  
-makbuk@MacBook-Air-makbuk Arts % tar -xvzf lab06-0.1.1-Darwin.tar.gz --strip-components=1
-x bin/
-x bin/hello_world
-x bin/solver
-makbuk@MacBook-Air-makbuk Arts % ls
-bin                lab06-0.1.1-Darwin.tar.gz
+% cd Arts
+Arts % tar -xvzf lab06-0.1.1-Darwin.tar.gz --strip-components=1  
+lab06 % cp _build/lab06-0.1.1-Darwin.tar.gz Arts/
+
+lab6 %  git tag -a v1.0.2 -m "Test release"
+ % git push origin v1.0.2
+>>Enumerating objects: 1, done.
+Counting objects: 100% (1/1), done.
+Writing objects: 100% (1/1), 173 bytes | 173.00 KiB/s, done.
+Total 1 (delta 0), reused 0 (delta 0), pack-reused 0
+To https://github.com/Ekaterina416b/lab6
+ * [new tag]         v1.0.2 -> v1.0.2
+
