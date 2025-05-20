@@ -1,56 +1,40 @@
-name: CPack
+name: CPack Release
+
 on:
   push:
-    branches: [master]
     tags:
-      - "v*.*.*"
-  pull_request:
-    branches: [master]
-    tags:
-      - "v*.*.*"
-        
+      - 'v*.*.*'  # Запускать при создании тегов, соответствующих шаблону v*.
+
 jobs:
   release:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install CMake
-        run: sudo apt-get install -y cmake
-      - name: Config ConceptualExample
-        run: cmake ${{github.workspace}} -B ${{github.workspace}}/build -D PRINT_VERSION=1.0.0
-      - name: Build ConceptualExample
-        run: cmake --build ${{github.workspace}}/build
-      - name: Build package
-        run: cmake --build ${{github.workspace}}/build --target package
-      - name: Package with CPack
-        run: |
-          cd build
-          cpack
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: package
-          path: ${{github.workspace}}/build/*.deb
-  create_tag_and_release:
-    needs: release
-    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Download artifact
-        uses: actions/download-artifact@v2
         with:
-          name: package
-          path: ./
-      - name: Make a release
-        uses: ncipollo/release-action@v1.11.0
+          fetch-depth: 0  # Обязательно для CPack
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/_build -D PRINT_VERSION=1.0.0 ${{github.workspace}}
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/_build --config Release
+
+      - name: Package with CPack
+        run: cpack -C Release --config Release -B ${{github.workspace}}/_build
+
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag: v1.1.1
-          artifacts: "build/*.deb,build/*.tar.gz,build/*.zip"
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: example
-          path: build/example
+          upload_url: ${{ github.event.release.upload_url }}  # from release event
+          asset_path: ${{ github.workspace }}/_build/*.deb
+          asset_name: solver_${github.ref_name}.deb
+          asset_content_type: application/vnd.debian.binary-package
