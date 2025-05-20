@@ -14,15 +14,15 @@ endif()
 if(NOT TARGET formatter_ex)
     # Используем уникальные имена бинарных директорий
     add_subdirectory(
-        ${CMAKE_SOURCE_DIR}/formatter_ex_lib
-        ${CMAKE_BINARY_DIR}/formatter_ex_lib_build
+        ../formatter_ex_lib
+        ../formatter_ex_lib_build
     )
 endif()
 
 if(NOT TARGET solver_lib)
     add_subdirectory(
-        ${CMAKE_SOURCE_DIR}/solver_lib
-        ${CMAKE_BINARY_DIR}/solver_lib_build
+        ../solver_lib
+        ../solver_lib_build
     )
 endif()
 
@@ -38,9 +38,9 @@ if(TARGET formatter_ex AND TARGET solver_lib)
     
     # Указываем пути к заголовкам
     target_include_directories(solver PRIVATE
-        ${CMAKE_SOURCE_DIR}/formatter_lib
-        ${CMAKE_SOURCE_DIR}/formatter_ex_lib
-        ${CMAKE_SOURCE_DIR}/solver_lib
+        ../formatter_lib
+        ../formatter_ex_lib
+        ../solver_lib
     )
 else()
     message(WARNING "Не удалось найти все необходимые библиотеки для линковки")
