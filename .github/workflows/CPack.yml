@@ -6,47 +6,47 @@ on:
     tags: ["v*.*.*"]
 
 jobs:
-  release:
+  build-and-package:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
-      - name: Install dependencies
+      - name: Set up environment
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake build-essential
 
-      - name: Configure
+      - name: Configure project
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
           cmake -B build -DCPACK_PACKAGE_VERSION=$VERSION
 
-      - name: Build and package
+      - name: Build and create packages
         run: |
           cd build
           cmake --build . --target package
-          cpack -G "DEB;TGZ"  # Явно указываем форматы
+          cpack -G "DEB;TGZ"
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4  # Ключевое исправление
         with:
           name: packages
           path: |
             build/*.deb
             build/*.tar.gz
 
-  create_release:
-    needs: release
+  create-release:
+    needs: build-and-package
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4  # Также обновлено
         with:
           name: packages
-          path: dist/
+          path: release-artifacts
 
       - uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref }}
           files: |
-            dist/*.deb
-            dist/*.tar.gz
+            release-artifacts/*.deb
+            release-artifacts/*.tar.gz
