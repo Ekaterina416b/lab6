@@ -1,38 +1,36 @@
 cmake_minimum_required(VERSION 3.22)
 project(lab06
     LANGUAGES CXX
-    VERSION 1.0.0  # Явное указание версии
+    VERSION 1.0.0 
 )
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Включаем политику для линковки между поддиректориями
 if(POLICY CMP0079)
     cmake_policy(SET CMP0079 NEW)
 endif()
 
-# Проверка обязательных директорий
+
 foreach(dir IN ITEMS formatter_ex_lib solver_lib solver_application)
     if(NOT EXISTS "${CMAKE_SOURCE_DIR}/${dir}")
         message(FATAL_ERROR "Required directory '${dir}' not found!")
     endif()
 endforeach()
 
-# Добавляем поддиректории
+
 add_subdirectory(formatter_ex_lib)
 add_subdirectory(solver_lib)
 add_subdirectory(solver_application)
 
-# Опциональные компоненты
 foreach(opt_dir IN ITEMS formatter_lib hello_world_application)
     if(EXISTS "${CMAKE_SOURCE_DIR}/${opt_dir}")
         add_subdirectory(${opt_dir})
     endif()
 endforeach()
 
-# Установка с проверкой целей
+
 set(INSTALL_TARGETS "")
 foreach(target IN ITEMS solver hello_world)
     if(TARGET ${target})
@@ -50,7 +48,7 @@ if(INSTALL_TARGETS)
     )
 endif()
 
-# Настройки CPack
+
 set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 set(CPACK_PACKAGE_DESCRIPTION "Solver application for quadratic equations")
