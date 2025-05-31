@@ -20,9 +20,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential cmake
-        # Для генерации пакетов
-        sudo apt-get install -y rpm
+        sudo apt-get install -y build-essential cmake rpm
         
     - name: Create build directory
       run: mkdir -p build
@@ -47,7 +45,7 @@ jobs:
         cpack -G "TGZ;DEB;RPM"
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v2  # Updated to v2
       with:
         name: build-artifacts
         path: |
