@@ -7,14 +7,21 @@ on:
 
 jobs:
   build-and-package:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       
       - name: Set up environment
         run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake build-essential
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get update
+            sudo apt-get install -y cmake build-essential rpm
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            choco install wixtoolset -y  # Установка WiX
+          fi
 
       - name: Configure project
         run: |
@@ -24,16 +31,25 @@ jobs:
       - name: Build and create packages
         run: |
           cd build
-          cmake --build . --target package
-          cpack -G "DEB;TGZ"
+          cmake --build .
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            cpack -G "DEB;TGZ;RPM"
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            cpack -G "WIX"
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            cpack -G "DragNDrop"
+          fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: packages
+          name: packages-${{ matrix.os }}
           path: |
             build/*.deb
             build/*.tar.gz
+            build/*.rpm
+            build/*.msi
+            build/*.dmg
 
   create-release:
     needs: build-and-package
@@ -41,12 +57,23 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: packages
-          path: release-artifacts
+          name: packages-ubuntu-latest
+          path: release-artifacts/linux
+      - uses: actions/download-artifact@v4
+        with:
+          name: packages-windows-latest
+          path: release-artifacts/windows
+      - uses: actions/download-artifact@v4
+        with:
+          name: packages-macos-latest
+          path: release-artifacts/macos
 
       - uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref }}
           files: |
-            release-artifacts/*.deb
-            release-artifacts/*.tar.gz
+            release-artifacts/linux/*.deb
+            release-artifacts/linux/*.tar.gz
+            release-artifacts/linux/*.rpm
+            release-artifacts/windows/*.msi
+            release-artifacts/macos/*.dmg
