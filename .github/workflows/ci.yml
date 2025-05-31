@@ -21,49 +21,36 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential cmake
+        # Для генерации пакетов
+        sudo apt-get install -y rpm
+        
+    - name: Create build directory
+      run: mkdir -p build
     
-    - name: Cache build directories
+    - name: Cache build directory
       uses: actions/cache@v3
       with:
-        path: |
-          formatter_lib/build
-          formatter_ex_lib/build
-          hello_world_application/build
-          solver_lib/build
-          solver_application/build
+        path: build
         key: ${{ runner.os }}-build-${{ github.sha }}
     
-    - name: Build formatter_lib
-      working-directory: formatter_lib
-      run: |
-        mkdir -p build && cd build
-        cmake -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ..
-        cmake --build .
+    - name: Configure project
+      working-directory: build
+      run: cmake -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ..
     
-    - name: Build formatter_ex_lib
-      working-directory: formatter_ex_lib
-      run: |
-        mkdir -p build && cd build
-        cmake -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ..
-        cmake --build .
+    - name: Build project
+      working-directory: build
+      run: cmake --build . --config ${{ env.BUILD_TYPE }}
     
-    - name: Build hello_world_application
-      working-directory: hello_world_application
+    - name: Generate packages
+      working-directory: build
       run: |
-        mkdir -p build && cd build
-        cmake -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ..
-        cmake --build .
+        cpack -G "TGZ;DEB;RPM"
     
-    - name: Build solver_lib
-      working-directory: solver_lib
-      run: |
-        mkdir -p build && cd build
-        cmake -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ..
-        cmake --build .
-    
-    - name: Build solver_application
-      working-directory: solver_application
-      run: |
-        mkdir -p build && cd build
-        cmake -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ..
-        cmake --build .
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifacts
+        path: |
+          build/*.tar.gz
+          build/*.deb
+          build/*.rpm
