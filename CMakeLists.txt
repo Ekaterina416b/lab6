@@ -68,4 +68,22 @@ set(CPACK_RPM_PACKAGE_LICENSE "MIT")
 set(CPACK_GENERATOR "TGZ;DEB;RPM")  # Только нужные форматы
 
 include(InstallRequiredSystemLibraries)
+
+# Настройки для WiX (Windows MSI)
+if(WIN32)
+    set(CPACK_GENERATOR "WIX")  # MSI-установщик
+    set(CPACK_WIX_PRODUCT_GUID "YOUR-GUID-HERE")  # Генерируйте новый GUID!
+    set(CPACK_WIX_UPGRADE_GUID "YOUR-UPGRADE-GUID-HERE")
+    set(CPACK_WIX_PRODUCT_ICON "${CMAKE_SOURCE_DIR}/assets/icon.ico")  # Опционально
+endif()
+
+# Настройки для DMG (macOS)
+if(APPLE)
+    set(CPACK_GENERATOR "DragNDrop")  # DMG-пакет
+    set(CPACK_DMG_VOLUME_NAME "${PROJECT_NAME}")
+    set(CPACK_DMG_BACKGROUND_IMAGE "${CMAKE_SOURCE_DIR}/assets/background.png")  # Опционально
+endif()
+
+# Общий список форматов (добавляем WiX и DMG)
+set(CPACK_GENERATOR "TGZ;DEB;RPM;WIX;DragNDrop")
 include(CPack)
