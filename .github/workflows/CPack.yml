@@ -32,7 +32,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-packages
-          path: _build/*.deb _build/*.tar.gz _build/*.rpm
+          path: build/*.deb build/*.tar.gz build/*.rpm
 
   windows:
     runs-on: windows-latest
