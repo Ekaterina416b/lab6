@@ -11,3 +11,5 @@
 # Игнорировать папки (если нужно)
 node_modules/
 .env
+build/
+Arts/bin/
