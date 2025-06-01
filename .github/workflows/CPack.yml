@@ -6,90 +6,66 @@ on:
     tags: ["v*.*.*"]
 
 jobs:
-  linux-build:
-    runs-on: ubuntu-latest
+  build-and-package:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       
       - name: Install dependencies
+        shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake build-essential rpm
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get update
+            sudo apt-get install -y cmake build-essential rpm
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            choco install -y wixtoolset cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install cmake
+          fi
 
-      - name: Configure and build
-        run: |
-          mkdir -p build
-          cd build
-          cmake .. -DCPACK_PACKAGE_VERSION=${GITHUB_REF#refs/tags/v}
-          cmake --build . --config Release
-
-      - name: Generate Linux packages
-        working-directory: build
-        run: |
-          cpack -G "DEB;TGZ;RPM"
-
-      - name: Upload Linux artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-packages
-          path: build/*.deb build/*.tar.gz build/*.rpm
-
-  windows-build:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install WIX and CMake
-        run: |
-          choco install -y wixtoolset cmake --installargs 'ADD_CMAKE_TO_PATH=System'
-
-      - name: Configure and build
-        run: |
-          mkdir build
-          cd build
-          cmake .. -DCPACK_PACKAGE_VERSION=${env:GITHUB_REF.Substring("refs/tags/v".Length)}
-          cmake --build . --config Release
-
-      - name: Generate Windows package
-        working-directory: build
-        run: |
-          cpack -G WIX || (echo "CPack failed"; dir; exit 1)
-
-      - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-package
-          path: build/*.msi
-
-  macos-build:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install CMake
-        run: |
-          brew install cmake
-
-      - name: Configure and build
+      - name: Configure project
+        shell: bash
         run: |
           mkdir -p build
           cd build
-          cmake .. -DCPACK_PACKAGE_VERSION=${GITHUB_REF#refs/tags/v}
-          cmake --build . --config Release
+          VERSION=${GITHUB_REF#refs/tags/v}
+          cmake .. -DCPACK_PACKAGE_VERSION=$VERSION
 
-      - name: Generate macOS package
+      - name: Build project
         working-directory: build
-        run: |
-          cpack -G DragNDrop
+        shell: bash
+        run: cmake --build . --config Release
 
-      - name: Upload macOS artifact
+      - name: Generate packages
+        working-directory: build
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            cpack -G "DEB;TGZ;RPM"
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            cpack -G "WIX" || (echo "CPack failed"; ls -la; exit 1)
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            cpack -G "DragNDrop"
+          fi
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: macos-package
-          path: build/*.dmg
+          name: packages-${{ matrix.os }}
+          path: |
+            build/*.deb
+            build/*.tar.gz
+            build/*.rpm
+            build/*.msi
+            build/*.dmg
+          if-no-files-found: warn
 
   create-release:
-    needs: [linux-build, windows-build, macos-build]
+    needs: build-and-package
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
@@ -97,7 +73,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
-          pattern: '*package*'
+          pattern: packages-*
           merge-multiple: true
 
       - name: Create release
