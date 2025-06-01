@@ -10,6 +10,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false  # Позволяет другим jobs завершиться, даже если одна упала
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -22,15 +23,20 @@ jobs:
           elif [ "$RUNNER_OS" == "Windows" ]; then
             choco install -y wixtoolset cmake --installargs 'ADD_CMAKE_TO_PATH=System'
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            brew install create-dmg cmake
+            brew install --formula cmake  # Явно указываем установку формулы
           fi
 
       - name: Configure project
         run: |
           mkdir -p build
           cd build
-          VERSION=${GITHUB_REF#refs/tags/v}
-          cmake .. -DCPACK_PACKAGE_VERSION=$VERSION
+          # Безопасное извлечение версии
+          VERSION=$(echo "${{ github.ref }}" | sed 's/refs\/tags\/v//')
+          cmake .. -DCPACK_PACKAGE_VERSION=${VERSION}
+          # Дополнительный debug вывод для Windows
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            cmake --graphviz=dependencies.dot .
+          fi
 
       - name: Build project
         working-directory: build
@@ -42,9 +48,9 @@ jobs:
           if [ "$RUNNER_OS" == "Linux" ]; then
             cpack -G "DEB;TGZ;RPM"
           elif [ "$RUNNER_OS" == "Windows" ]; then
-            cpack -G "WIX" --config CPackConfig.cmake
+            cpack -G "WIX" --debug || (echo "CPack failed"; ls -la; exit 1)
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            cpack -G "DragNDrop" --config CPackConfig.cmake
+            cpack -G "DragNDrop"
           fi
 
       - name: Upload artifacts
@@ -57,6 +63,7 @@ jobs:
             build/*.rpm
             build/*.msi
             build/*.dmg
+          if-no-files-found: warn
 
   create-release:
     needs: build-and-package
