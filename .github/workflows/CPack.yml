@@ -36,42 +36,52 @@ jobs:
             build/*.tar.gz
 
   windows:
+   
     runs-on: windows-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Install WiX and CMake
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.27'
+
+      - name: Debug WiX
         run: |
-          choco install -y wixtoolset
-          choco install -y cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+          Get-Command candle.exe -ErrorAction SilentlyContinue
+          candle -?
 
-      - name: Verify WiX installation
-        run: where candle.exe light.exe
-
-      - name: Configure project
+      - name: Add WiX Toolset to PATH
         run: |
-          mkdir build
-          cd build
-          cmake .. -DCPACK_PACKAGE_VERSION=$env:GITHUB_REF_NAME.Replace('v','')
-
-      - name: Build project
-        working-directory: build
-        run: cmake --build . --config Release
-
-      - name: Generate MSI package
-        working-directory: build
-        run: |
-          cpack -G WIX -C Release --verbose
-          if ($LASTEXITCODE -ne 0) {
-            Get-Content "D:/a/lab6.1/lab6.1/build/_CPack_Packages/win64/WIX/wix.log"
+          $wixPath = "C:\Program Files (x86)\WiX Toolset v3.14\bin"
+          if (Test-Path $wixPath) {
+            echo "WiX found at $wixPath, adding to PATH..."
+            echo "$wixPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          } else {
+            Write-Error "WiX Toolset not found at $wixPath!"
             exit 1
           }
 
-      - name: Upload artifact
+      - name: Configure CMake
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Generate MSI with CPack
+        run: |
+          cd build
+          cpack -G WIX -C Release
+
+      - name: Upload MSI Artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-package
           path: build/*.msi
+
+
 
   macos:
     runs-on: macos-latest
