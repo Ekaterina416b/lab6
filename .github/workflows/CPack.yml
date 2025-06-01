@@ -46,7 +46,7 @@ jobs:
       - name: Setup CMake
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          cmake-version: '3.27'
+          cmake-version: '3.29'
 
       - name: Debug WiX
         run: |
