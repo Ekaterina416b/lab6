@@ -71,7 +71,7 @@ set(CPACK_WIX_UPGRADE_GUID "a1df024f-5ac8-4459-90d0-f5747165dcbd") # Здесь 
 set(CPACK_WIX_CMAKE_PACKAGE_REGISTRY TRUE)
 set(CPACK_WIX_ARCHITECTURE "x64")
 
-# Настройки для DMG (macOS) - без фона
+# Настройки для DMG (macOS)
 if(APPLE)
     list(APPEND CPACK_GENERATOR "DragNDrop")
     set(CPACK_DMG_VOLUME_NAME "${PROJECT_NAME}")

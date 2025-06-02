@@ -1,2 +1,0 @@
-/Users/makbuk/lab06/_build/_CPack_Packages/Darwin/TGZ/lab06-0.1.1-Darwin/bin/hello_world
-/Users/makbuk/lab06/_build/_CPack_Packages/Darwin/TGZ/lab06-0.1.1-Darwin/bin/solver
