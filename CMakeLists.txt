@@ -60,13 +60,16 @@ set(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
 set(CPACK_RPM_PACKAGE_REQUIRES "libstdc++ >= 10.2")
 set(CPACK_RPM_PACKAGE_LICENSE "MIT")
 
-# Настройки для WiX (Windows MSI) - без иконок
-if(WIN32)
-    list(APPEND CPACK_GENERATOR "WIX")
-    set(CPACK_WIX_PRODUCT_GUID "YABCDEFGH-1234-5678-9012-345678901234")  # Обязательно замените на реальный GUID
-    set(CPACK_WIX_UPGRADE_GUID "ZYXWVUTS-9876-5432-1098-765432109876")  # Другой GUID
-    # Убрали ссылку на иконку
-endif()
+# Настройка CPack для генерации MSI
+set(CPACK_GENERATOR "WIX")
+set(CPACK_PACKAGE_NAME "Windows")
+set(CPACK_PACKAGE_VENDOR "YourCompany")
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "Windows")
+set(CPACK_WIX_PRODUCT_GUID "2ee2d854-75f0-432a-bfa6-8a1ce8fb1c02") # Здесь для каждого релиза нужен новый GUID
+set(CPACK_WIX_UPGRADE_GUID "a1df024f-5ac8-4459-90d0-f5747165dcbd") # Здесь для каждого релиза нужен новый GUID
+set(CPACK_WIX_CMAKE_PACKAGE_REGISTRY TRUE)
+set(CPACK_WIX_ARCHITECTURE "x64")
 
 # Настройки для DMG (macOS) - без фона
 if(APPLE)
