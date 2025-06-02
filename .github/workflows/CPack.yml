@@ -90,7 +90,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install CMake (CLI version)
-        run: brew install cmake --formula  # Явно указываем установку формулы (CLI)
+        run: brew install cmake --formula
 
       - name: Configure and build
         run: |
@@ -126,4 +126,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref }}
-          files: artifacts/**  # Теперь строка закрыта корректно
+          files: artifacts/**
